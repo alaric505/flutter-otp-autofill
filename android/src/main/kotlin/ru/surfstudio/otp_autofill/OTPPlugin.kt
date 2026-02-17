@@ -127,17 +127,18 @@ class OTPPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.ActivityResul
                 }
 
             credentialPickerRequest -> if (resultCode == Activity.RESULT_OK && data != null) {
-                // Check if the result is for credential picker
-                if (data.hasExtra(SmsRetriever.EXTRA_SMS_MESSAGE)) {
-                    // This is a result from the SMS consent picker
+                try {
                     val phoneNumber =
                         Identity.getSignInClient(context!!).getPhoneNumberFromIntent(data)
                     lastResult?.success(phoneNumber)
                     lastResult = null
-                } else {
-                    lastResult?.error("403", "User denied consent", null)
+                } catch (e: Exception) {
+                    lastResult?.error("500", "Failed to extract phone number: ${e.message}", null)
                     lastResult = null
                 }
+            } else {
+                lastResult?.error("403", "User denied consent", null)
+                lastResult = null
             }
         }
         return true
